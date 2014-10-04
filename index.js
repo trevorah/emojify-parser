@@ -1,12 +1,14 @@
 var emojiList = require('./emoji-list');
+var emoticonMap = require('./emoticon-mapping');
 
-// emoji like "+1" etc mess with regexps, so escape them
-var escapedEmojiList = emojiList.map(function(emoji) {
-  return emoji.replace('-', '\\-').replace('+', '\\+');
-});
+var emoticonEmojiList = Object.keys(emoticonMap).concat(emojiList);
 
-// results in :(\+1|\-1|100|1234|8ball| ... ):
-var reString = ':(' + escapedEmojiList.join('|') + '):';
+// emoji and emoticons like "+1", ":)" etc mess with regexps, so escape them
+var escapedEmojiList = emojiList.map(escapeRexexp);
+var escapedEmoticonList = Object.keys(emoticonMap).map(escapeRexexp);
+
+// results in :(\+1|\-1|100|1234|8ball| ... ):|:\)|:\-\)| ...
+var reString = ':(' + escapedEmojiList.join('|') + '):|' + escapedEmoticonList.join('|');
 
 function parse(string) {
   // create the re each time as re.exec() increments re.lastIndex
@@ -14,11 +16,11 @@ function parse(string) {
   var prevLastIndex = 0;
   var tokens = [];
 
-  // while regex still matches emoji
+  // while regex still matches emoji/emoticons
   for(var match = re.exec(string); match; match = re.exec(string)) {
 
     if(match.index > prevLastIndex) {
-      // weve just gone past some non-emoji text, so add it to the tokens
+      // weve just gone past some non-emoji/emoticon text, so add it to the tokens
       var text = string.substring(prevLastIndex, match.index);
       tokens.push({ type: 'text', raw: text });
     }
@@ -26,9 +28,12 @@ function parse(string) {
     // e.g :8ball:
     var raw = match[0];
     // e.g 8ball
-    var name = match[1];
+    var capturedName = match[1];
 
-    tokens.push({ type: 'emoji', name: name, raw: raw });
+    var type = capturedName ? 'emoji' : 'emoticon';
+    var name = capturedName || emoticonMap[raw];
+
+    tokens.push({ type: type, name: name, raw: raw });
 
     prevLastIndex = re.lastIndex;
   }
@@ -40,6 +45,17 @@ function parse(string) {
   }
 
   return tokens;
+}
+
+function escapeRexexp(string) {
+  return string.replace('-', '\\-')
+               .replace('+', '\\+')
+               .replace('(', '\\(')
+               .replace(')', '\\)')
+               .replace('$', '\\$')
+               .replace('*', '\\*')
+               .replace('|', '\\|')
+               .replace('[', '\\[');
 }
 
 module.exports.parse = parse;
