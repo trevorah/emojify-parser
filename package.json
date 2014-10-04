@@ -1,0 +1,14 @@
+{
+  "name": "emojify-parser",
+  "version": "0.0.0",
+  "main": "index.json",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Andy Trevorah",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^1.21.4",
+    "request": "^2.44.0"
+  }
+}
