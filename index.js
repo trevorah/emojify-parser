@@ -8,10 +8,11 @@ var escapedEmojiList = emojiList.map(escapeRexexp);
 var escapedEmoticonList = Object.keys(emoticonMap).map(escapeRexexp);
 
 // results in :(\+1|\-1|100|1234|8ball| ... ):|:\)|:\-\)| ...
+// we only have one capture group so we can tell if a match is an emoji or an emoticon
 var reString = ':(' + escapedEmojiList.join('|') + '):|' + escapedEmoticonList.join('|');
 
 function parse(string) {
-  // create the re each time as re.exec() increments re.lastIndex
+  // create the re each time, as re.exec() increments re.lastIndex
   var re = new RegExp(reString, 'g');
   var prevLastIndex = 0;
   var tokens = [];
